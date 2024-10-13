@@ -66,5 +66,209 @@ If you plan to deploy your app and want ongoing performance monitoring, consider
 - **New Relic** or **Sentry** for detailed performance metrics and error tracking
 
 ### Summary
-
 By following these steps, you can effectively measure the speed benefits of using Webpack in your Django app. You'll be able to see improvements in load times and understand the impact of bundling and optimizing your assets. If you have any specific questions about the testing process or need further assistance, feel free to ask!
+
+
+# To add a second Django app to a new branch in your GitHub repository without affecting the main branch until you're ready to merge:
+
+### Step-by-Step Instructions for Adding a Second App on a New GitHub Branch
+
+#### 1. **Create a New Branch**
+
+1. **Navigate to Your Project Root** (where `manage.py` is located):
+
+   ```bash
+   cd /workspaces/django-webpack-hello-world/
+   ```
+
+2. **Create and Checkout a New Branch** (let's call it `add-second-app`):
+
+   ```bash
+   git checkout -b add-second-app
+   ```
+
+#### 2. **Create the New Django App**
+
+1. **Run the Command to Create the New App** (let’s call it `secondapp`):
+
+   ```bash
+   python manage.py startapp secondapp
+   ```
+
+#### 3. **Update Project Structure**
+
+Your project structure should now look like this:
+
+```
+django-webpack-hello-world/
+├── myvenv/
+├── manage.py
+├── mysite/
+│   ├── settings.py
+│   └── urls.py
+├── helloapp/
+│   ├── static/
+│   │   └── helloapp/
+│   │       ├── js/
+│   │       │   └── main.js
+│   │       ├── css/
+│   │       │   └── main.css
+│   │       └── images/
+│   │           └── image.jpg
+│   ├── templates/
+│   │   └── helloapp/
+│   │       └── main.html
+├── secondapp/
+│   ├── static/
+│   │   └── secondapp/
+│   │       ├── js/
+│   │       │   └── main.js
+│   │       ├── css/
+│   │       │   └── main.css
+│   │       └── images/
+│   │           └── image.jpg
+│   ├── templates/
+│   │   └── secondapp/
+│   │       └── main.html
+└── webpack.config.js
+```
+
+#### 4. **Update Settings.py**
+
+1. **Open `mysite/settings.py`**.
+2. **Add the new app to `INSTALLED_APPS`**:
+
+   ```python
+   INSTALLED_APPS = [
+       # other apps
+       'helloapp',
+       'secondapp',  # Add this line
+   ]
+   ```
+
+3. **Update the Static Files Configuration** (if needed):
+
+   Ensure that the static files directory includes both apps:
+
+   ```python
+   STATICFILES_DIRS = [
+       BASE_DIR / 'helloapp/static',
+       BASE_DIR / 'secondapp/static',  # Add this line
+   ]
+   ```
+
+#### 5. **Configure Webpack for the Second App**
+
+1. **Modify `webpack.config.js`** to include a new entry point for the second app:
+
+   ```javascript
+   const path = require('path');
+
+   module.exports = {
+       entry: {
+           helloapp: './helloapp/static/helloapp/js/main.js',
+           secondapp: './secondapp/static/secondapp/js/main.js',  // Add this line
+       },
+       output: {
+           path: path.resolve(__dirname, 'helloapp/static/helloapp/bundle'),
+           filename: '[name].bundle.js',  // Change to allow multiple bundles
+       },
+       module: {
+           rules: [
+               {
+                   test: /\.css$/,
+                   use: ['style-loader', 'css-loader'],
+               },
+           ],
+       },
+       mode: 'development',
+   };
+   ```
+
+2. **Create the `main.js` and `main.css` for `secondapp`** in the `secondapp/static/secondapp/js` and `secondapp/static/secondapp/css` directories, similar to how you did for `helloapp`.
+
+#### 6. **Create Templates for the Second App**
+
+1. **Create a template file** in `secondapp/templates/secondapp/main.html`:
+
+   ```html
+   <!DOCTYPE html>
+   <html lang="en">
+   <head>
+       {% load static %}
+       <link rel="stylesheet" href="{% static 'secondapp/css/main.css' %}">
+   </head>
+   <body>
+       <h1>Hello from Second App!</h1>
+       <img src="{% static 'secondapp/images/image.jpg' %}" alt="Sample Image">
+       <script src="{% static 'secondapp/bundle/secondapp.bundle.js' %}"></script>
+   </body>
+   </html>
+   ```
+
+#### 7. **Add URL Configuration**
+
+1. **Open `mysite/urls.py`** and define a route for the second app:
+
+   ```python
+   from django.urls import path
+   from helloapp import views as hello_views
+   from secondapp import views as second_views
+
+   urlpatterns = [
+       path('', hello_views.main_view, name='main'),
+       path('second/', second_views.main_view, name='second'),  # Add this line
+   ]
+   ```
+
+2. **Define the view for the second app** in `secondapp/views.py`:
+
+   ```python
+   from django.shortcuts import render
+
+   def main_view(request):
+       return render(request, 'secondapp/main.html')
+   ```
+
+#### 8. **Run Webpack and Start the Server**
+
+1. **Run Webpack** to bundle assets:
+
+   ```bash
+   npx webpack
+   ```
+
+2. **Start the Django server**:
+
+   ```bash
+   python manage.py runserver
+   ```
+
+#### 9. **Commit Your Changes**
+
+1. **Add the changes to Git**:
+
+   ```bash
+   git add .
+   ```
+
+2. **Commit the changes**:
+
+   ```bash
+   git commit -m "Added second Django app with shared Webpack configuration"
+   ```
+
+3. **Push the new branch to GitHub**:
+
+   ```bash
+   git push origin add-second-app
+   ```
+
+### Access Your Second App
+
+- Visit `http://127.0.0.1:8000/` for the first app.
+- Visit `http://127.0.0.1:8000/second/` for the second app.
+
+### Summary
+
+By following these steps on a new branch, you can add a second Django app while sharing the same Webpack configuration and virtual environment. This allows you to work on new features without affecting the main branch until you’re ready to merge. If you have any questions or need further assistance, feel free to ask!
